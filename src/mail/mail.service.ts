@@ -12,7 +12,7 @@ export class MailService {
     try {
       await this.mailerService.sendMail({
         to: email, // list of receivers
-        from: '"nest-modules" <modules@nestjs.com>', // sender address
+        from: '"迟迟" <2675988015@qq.com>', // sender address
         subject: '验证码', // Subject line
         text: 'welcome', // plaintext body
         html: '<b>welcome</b>', // HTML body content
