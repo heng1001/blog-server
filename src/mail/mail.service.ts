@@ -21,6 +21,8 @@ export class MailService {
         },
       });
 
+      // TODO:验证码5min过期（redis）
+
       return code;
     } catch (error) {
       console.error('发送验证码邮件失败', error);

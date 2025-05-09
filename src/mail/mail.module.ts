@@ -24,6 +24,7 @@ import { MailController } from './mail.controller';
         defaults: {
           from: '"nest-modules" <modules@nestjs.com>',
         },
+        preview: true, // 启用邮件预览功能
         template: {
           dir: path.join(process.cwd(), 'templates'),
           adapter: new HandlebarsAdapter(),
