@@ -24,10 +24,6 @@ export class UserService {
       throw new ConflictException('邮箱已被注册');
     }
 
-    // 开启事务
-    const session = await this.userModel.startSession();
-    session.startTransaction();
-
     try {
       // 先尝试发送验证邮件
       await this.mailService.sendVerificationEmail(email);
@@ -35,34 +31,21 @@ export class UserService {
       // 邮件发送成功后，创建用户
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await this.userModel.create(
-        [
-          {
-            email,
-            password: hashedPassword as string,
-            isEmailVerified: false,
-            loginMethod: 'email',
-          },
-        ],
-        { session },
-      );
+      const user = await this.userModel.create({
+        email,
+        password: hashedPassword,
+        isEmailVerified: false,
+        loginMethod: 'email',
+      });
 
-      // 提交事务
-      await session.commitTransaction();
-
-      return user[0];
+      return user;
     } catch (error) {
-      // 如果出现任何错误，回滚事务
-      await session.abortTransaction();
+      console.error('用户注册错误详情:', error);
 
-      // 根据错误类型抛出相应的异常
       if (error instanceof ConflictException) {
         throw error;
       }
       throw new InternalServerErrorException('注册失败，请稍后重试');
-    } finally {
-      // 结束会话
-      await session.endSession();
     }
   }
 }
