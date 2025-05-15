@@ -34,17 +34,11 @@ export class UserService {
       const user = await this.userModel.create({
         email,
         password: hashedPassword,
-        isEmailVerified: false,
-        loginMethod: 'email',
       });
 
       return user;
     } catch (error) {
       console.error('用户注册错误详情:', error);
-
-      if (error instanceof ConflictException) {
-        throw error;
-      }
       throw new InternalServerErrorException('注册失败，请稍后重试');
     }
   }

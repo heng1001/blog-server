@@ -1,12 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Post, Body } from '@nestjs/common';
-
-// 邮件注册DTO
-class RegisterMailDto {
-  email: string;
-  password: string;
-}
+import { RegisterMailDto } from './dto/register.dto';
 
 @Controller('user')
 export class UserController {
