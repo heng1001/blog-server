@@ -17,21 +17,22 @@ import { MailController } from './mail.controller';
           transport: {
             host: configService.get<string>('MAIL_SERVER'), // QQ邮箱SMTP服务器
             port: configService.get<number>('MAIL_PORT'), // QQ邮箱SMTP端口
-            secure: true, // 使用SSL加密连接
+            secure: configService.get<boolean>('MAIL_USE_SSL'), // 使用SSL加密连接
             auth: {
               user: configService.get<string>('MAIL_USER'), // 邮箱账号
               pass: configService.get<string>('MAIL_PASSWORD'), // 邮箱授权码
             },
           },
           defaults: {
-            from: '"迟迟" <2675988015@qq.com>', // 发件人
+            from: configService.get<string>('MAIL_FROM'), // 发件人
           },
           preview: true, // 启用邮件预览功能（开发环境有用）
+          // 模板配置
           template: {
-            dir: path.join(process.cwd(), 'templates'),
-            adapter: new HandlebarsAdapter(),
+            dir: path.join(process.cwd(), 'templates/pages'),
+            adapter: new HandlebarsAdapter(), // 使用Handlebars作为模板引擎
             options: {
-              strict: true,
+              strict: true, // 严格模式，变量未定义会报错
             },
           },
         };

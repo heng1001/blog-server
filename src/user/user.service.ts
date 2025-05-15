@@ -26,7 +26,7 @@ export class UserService {
 
     try {
       // 先尝试发送验证邮件
-      await this.mailService.sendVerificationEmail(email);
+      await this.mailService.sendRegisterVerificationEmail(email);
 
       // 邮件发送成功后，创建用户
       const hashedPassword = await bcrypt.hash(password, 10);
