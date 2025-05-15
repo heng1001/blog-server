@@ -16,15 +16,19 @@ export class UserService {
   async sendCodeByMail(email: string) {
     // 验证码在redis中的键名
     const codeKey = `code:${email}`;
+    // 最后发送时间的键名
+    const lastSendTimeKey = `last_send_time:${email}`;
 
     // 检查是否短时间内多次请求
-    const existingCode = await this.redisService.get<string>(codeKey);
-    if (existingCode) {
-      // 获取剩余过期时间
-      const ttl = await this.redisService.ttl(codeKey);
-      console.log(ttl, 'ttl---');
-      if (ttl < 300) {
-        throw new Error('验证码已发送，请勿频繁请求');
+    const lastSendTime = await this.redisService.get<number>(lastSendTimeKey);
+    if (lastSendTime) {
+      // 计算从上次发送到现在经过的时间(秒)
+      const elapsedSeconds = Math.floor((Date.now() - lastSendTime) / 1000);
+
+      // 如果不到1分钟，拒绝请求
+      if (elapsedSeconds < 60) {
+        const remainingSeconds = 60 - elapsedSeconds;
+        throw new Error(`请等待 ${remainingSeconds} 秒后再请求`);
       }
     }
 
@@ -33,6 +37,9 @@ export class UserService {
 
     // 存储验证码（设置5分钟过期时间）
     await this.redisService.set(codeKey, code, 300);
+
+    // 更新最后发送时间
+    await this.redisService.set(lastSendTimeKey, Date.now(), 300);
 
     // 发送验证码邮件
     await this.mailService.sendEmail(email, `验证码：${code}`, 'welcome', {
