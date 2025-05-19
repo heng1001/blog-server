@@ -19,11 +19,7 @@ export class UserController {
   async sendCodeByMail(@Body() dto: GetCodeByMailDto) {
     try {
       await this.userService.sendCodeByMail(dto.email);
-      return {
-        code: 200,
-        message: '验证码发送成功',
-        data: null,
-      };
+      return null;
     } catch (error) {
       throw new BadRequestException('发送验证码失败: ' + error);
     }
