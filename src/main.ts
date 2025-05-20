@@ -2,8 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { generateSwaggerDocument } from './swagger';
-import { TransformInterceptor } from './interceptors/transform.interceptor';
-import { GlobalExceptionFilter } from './filters/globalException.filter';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { GlobalExceptionFilter } from './common/filters/globalException.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
