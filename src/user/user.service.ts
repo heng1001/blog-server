@@ -1,10 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import * as crypto from 'crypto';
 import { RedisService } from 'src/redis/redis.service';
+import { RegisterMailDto } from './dto/register-mail.dto';
+import { GetCodeByMailDto } from './dto/get-code-by-mail.dto';
 @Injectable()
 export class UserService {
   constructor(
@@ -13,11 +19,12 @@ export class UserService {
     private redisService: RedisService,
   ) {}
 
-  async sendCodeByMail(email: string) {
+  // 发送验证码到邮箱
+  async sendCodeByMail(dto: GetCodeByMailDto) {
     // 验证码在redis中的键名
-    const codeKey = `code:${email}`;
+    const codeKey = `code:${dto.email}`;
     // 最后发送时间的键名
-    const lastSendTimeKey = `last_send_time:${email}`;
+    const lastSendTimeKey = `last_send_time:${dto.email}`;
 
     // 检查是否短时间内多次请求
     const lastSendTime = await this.redisService.get<number>(lastSendTimeKey);
@@ -42,8 +49,63 @@ export class UserService {
     await this.redisService.set(lastSendTimeKey, Date.now(), 300);
 
     // 发送验证码邮件
-    await this.mailService.sendEmail(email, `验证码：${code}`, 'welcome', {
+    await this.mailService.sendEmail(dto.email, `验证码：${code}`, 'welcome', {
       code,
     });
+  }
+
+  // 邮箱注册
+  async registerByMail(dto: RegisterMailDto) {
+    const { email, password, code } = dto;
+
+    // 检查邮箱是否已被注册
+    const existUser = await this.userModel.findOne({ email });
+    if (existUser) {
+      throw new ConflictException('该邮箱已被注册');
+    }
+
+    // 验证码校验
+    const codeKey = `code:${email}`;
+    const saveCode = await this.redisService.get<string>(codeKey);
+
+    if (!saveCode) {
+      throw new BadRequestException('验证码已过期，请重新获取');
+    }
+
+    if (saveCode !== code) {
+      throw new BadRequestException('验证码错误');
+    }
+
+    // 密码加密
+    const salt = crypto.randomBytes(16).toString('hex');
+    const hash = crypto
+      .pbkdf2Sync(password, salt, 1000, 64, 'sha512')
+      .toString('hex');
+
+    // 生成随机用户名
+    const randomString = crypto.randomBytes(8).toString('hex');
+    const username = `用户_${randomString}`;
+
+    // 创建新用户
+    const newUser = await this.userModel.create({
+      email,
+      username,
+      password: hash,
+      salt,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    // 删除Redis中的验证码
+    await this.redisService.del(codeKey);
+
+    // 返回结果
+    const userObj = newUser.toJSON();
+    const result = Object.fromEntries(
+      Object.entries(userObj).filter(
+        ([key]) => !['password', 'salt'].includes(key),
+      ),
+    );
+    return result;
   }
 }

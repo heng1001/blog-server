@@ -1,14 +1,8 @@
 import { Controller, BadRequestException } from '@nestjs/common';
 import { UserService } from './user.service';
-import { IsEmail, IsNotEmpty } from 'class-validator';
 import { Post, Body } from '@nestjs/common';
-
-// 邮箱获取验证码dto
-class GetCodeByMailDto {
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-}
+import { RegisterMailDto } from './dto/register-mail.dto';
+import { GetCodeByMailDto } from './dto/get-code-by-mail.dto';
 
 @Controller('user')
 export class UserController {
@@ -18,10 +12,17 @@ export class UserController {
   @Post('sendCodeByMail')
   async sendCodeByMail(@Body() dto: GetCodeByMailDto) {
     try {
-      await this.userService.sendCodeByMail(dto.email);
+      await this.userService.sendCodeByMail(dto);
       return null;
     } catch (error) {
       throw new BadRequestException('发送验证码失败: ' + error);
     }
+  }
+
+  // 邮箱注册
+  @Post('registerByMail')
+  async registerByMail(@Body() dto: RegisterMailDto) {
+    const result = await this.userService.registerByMail(dto);
+    return result;
   }
 }

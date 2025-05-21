@@ -46,9 +46,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       timestamp: new Date().toISOString(), // 时间戳
     };
 
-    // 7. 初始化错误信息和错误码
-    let errorMessage = '服务器内部错误'; // 默认错误信息
-    let errorCode = 1; // 默认错误码
+    // 7. 初始化错误信息
+    let errorMessage = '服务器内部错误';
 
     // 8. 处理异常
     if (exception instanceof HttpException) {
@@ -67,38 +66,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           ? exceptionResponse.message[0]
           : exceptionResponse.message;
       }
-
-      // 9. 根据不同的 HTTP 状态码设置错误码
-      switch (exception.getStatus()) {
-        case 400:
-          errorCode = 400; // 参数错误
-          break;
-        case 401:
-          errorCode = 401; // 未授权
-          break;
-        case 403:
-          errorCode = 403; // 禁止访问
-          break;
-        default:
-          errorCode = 500; // 其他错误
-      }
     } else if (exception instanceof Error) {
       // 如果是普通的 Error
       errorMessage = exception.message; // 使用错误信息
     }
 
-    // 10. 记录错误日志
+    // 9. 记录错误日志
     this.logger.error(
       `Error in request: ${JSON.stringify(requestInfo)}`, // 记录请求信息
       exception.stack, // 记录错误堆栈
     );
 
-    // 11. 发送统一格式的错误响应
+    // 10. 发送统一格式的错误响应
     response.status(200).json({
-      // HTTP 状态码统一为 200
-      status: errorCode, // 业务状态码
-      message: errorMessage, // 错误信息
-      data: null, // 错误时数据为空
+      status: 1, // 统一使用 1 表示错误
+      message: errorMessage,
+      data: null,
     });
   }
 }
