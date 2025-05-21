@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { generateSwaggerDocument } from './swagger';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { GlobalExceptionFilter } from './common/filters/globalException.filter';
+import { GlobalValidationPipe } from './common/pipes/global-validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,6 +17,9 @@ async function bootstrap() {
 
   // 全局注册异常过滤器
   app.useGlobalFilters(new GlobalExceptionFilter());
+
+  // 全局应用验证管道
+  app.useGlobalPipes(new GlobalValidationPipe());
 
   // 统一接口路径前缀
   app.setGlobalPrefix('/api');
