@@ -3,6 +3,7 @@ import { UserService } from './user.service';
 import { Post, Body } from '@nestjs/common';
 import { RegisterMailDto } from './dto/register-mail.dto';
 import { GetCodeByMailDto } from './dto/get-code-by-mail.dto';
+import { LoginMailDto } from './dto/login-mail.dto';
 
 @Controller('user')
 export class UserController {
@@ -23,6 +24,13 @@ export class UserController {
   @Post('registerByMail')
   async registerByMail(@Body() dto: RegisterMailDto) {
     const result = await this.userService.registerByMail(dto);
+    return result;
+  }
+
+  // 邮箱登录
+  @Post('loginByMail')
+  async loginByMail(@Body() dto: LoginMailDto) {
+    const result = await this.userService.loginByMail(dto);
     return result;
   }
 }

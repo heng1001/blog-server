@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { MailService } from 'src/mail/mail.service';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,12 +12,15 @@ import * as crypto from 'crypto';
 import { RedisService } from 'src/redis/redis.service';
 import { RegisterMailDto } from './dto/register-mail.dto';
 import { GetCodeByMailDto } from './dto/get-code-by-mail.dto';
+import { LoginMailDto } from './dto/login-mail.dto';
+import { AuthService } from 'src/auth/auth.service';
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private mailService: MailService,
     private redisService: RedisService,
+    private authService: AuthService,
   ) {}
 
   // 发送验证码到邮箱
@@ -107,5 +111,33 @@ export class UserService {
       ),
     );
     return result;
+  }
+
+  // 邮箱登录
+  async loginByMail(dto: LoginMailDto) {
+    const { email, password } = dto;
+
+    // 查找用户
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    // 验证密码
+    const hash = crypto
+      .pbkdf2Sync(password, user.salt, 1000, 64, 'sha512')
+      .toString('hex');
+    if (hash !== user.password) {
+      throw new UnauthorizedException('密码错误');
+    }
+
+    // 生成token
+    const payload = {
+      email: user.email,
+      id: user._id.toString(),
+    };
+    const token = this.authService.generateToken(payload);
+
+    return token;
   }
 }

@@ -1,10 +1,13 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type UserDocument = User & Document;
 
 @Schema()
 export class User {
+  @Prop({ type: Types.ObjectId, auto: true })
+  _id: Types.ObjectId; // 添加 _id 字段
+
   @Prop({ required: true, unique: true })
   email: string; // 邮箱
 

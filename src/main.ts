@@ -28,6 +28,5 @@ async function bootstrap() {
   generateSwaggerDocument(app);
 
   await app.listen(process.env.PORT ?? 3000);
-
 }
 bootstrap();
