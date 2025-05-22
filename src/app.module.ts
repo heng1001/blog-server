@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { RedisModule } from './redis/redis.module';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './auth/guards/auth.guard';
+import { MinioModule } from './minio-client/minio.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -17,6 +18,7 @@ import { AuthGuard } from './auth/guards/auth.guard';
     MailModule,
     AuthModule,
     RedisModule,
+    MinioModule,
   ],
   controllers: [AppController],
   providers: [
